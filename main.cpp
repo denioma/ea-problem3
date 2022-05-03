@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 class Node {
 public:
@@ -10,7 +11,7 @@ public:
 
     Node() {}
 
-    void depends_of(int id) { requires.push_back(id); }
+    void depends_on(int id) { requires.push_back(id); }
 
     void is_required(int id) { required_by.push_back(id); }
 
@@ -34,7 +35,7 @@ bool dfs(std::vector<Node>& graph, std::vector<bool>& marked, int v) {
 // Not sure if needed in the future
 int start = -1, end = -1;
 
-bool checkPipeline(std::vector<Node>& graph) {
+bool check_pipeline(std::vector<Node>& graph) {
     // Use DFS for cycle checking and for connected graph
     std::vector<bool> marked(graph.size(), false);
 
@@ -57,7 +58,33 @@ bool checkPipeline(std::vector<Node>& graph) {
         }
     }
 
+    if (start == -1 || end == -1) return false;
     return true;
+}
+
+void topological_sorting(std::vector<Node>& graph) {
+    int total = 0;
+    std::vector<int> sorted;
+    std::vector<int> deg(graph.size());
+    for (size_t i = 0; i < graph.size(); i++) deg[i] = (int) graph[i].requires.size();
+
+    while (sorted.size() != graph.size()) {
+        for (int i = 0; i < (int) deg.size(); i++) {
+            if (deg[i] != 0) continue;
+
+            Node& node = graph[i];
+            for (const auto& id : node.required_by) {
+                deg[id]--;
+            }
+            sorted.push_back(i+1);
+            total += node.time;
+            deg[i]--;
+            break;
+        }
+    }
+
+    std::cout << total << "\n";
+    for (const auto& node : sorted) std::cout << node << "\n";
 }
 
 int main() {
@@ -72,13 +99,20 @@ int main() {
         graph[i].time = t;
         for (int j = 0; j < d; j++) {
             std::cin >> id;
-            graph[i].depends_of(id-1);
-            graph[id-1].is_required(i);
+            id--;
+
+            if (id == i) {
+                std::cout << "INVALID\n";
+                return 0;
+            }
+
+            graph[i].depends_on(id);
+            graph[id].is_required(i);
         }
     }
     std::cin >> stat;
 
-    if (!checkPipeline(graph)) {
+    if (!check_pipeline(graph)) {
         std::cout << "INVALID\n";
         return 0;
     }
@@ -87,9 +121,16 @@ int main() {
         case 0:
             std::cout << "VALID\n";
             break;
-        default:
-            // TODO implement 3 stats
-            std::cout << "Stat " << stat << " not implemented\n";
+        case 1:
+            topological_sorting(graph);
+            break;
+        case 2:
+            // TODO
+            std::cout << "TODO\n";
+            break;
+        case 3:
+            // TODO
+            std::cout << "TODO\n";
             break;
     }
 
