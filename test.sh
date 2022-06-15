@@ -7,5 +7,7 @@ do
     if [ $? -ne 0 ];
     then
         echo "Failed $testcase"
+    else
+        echo "Passed $testcase"
     fi
 done

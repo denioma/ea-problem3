@@ -143,27 +143,32 @@ int count_down(std::vector<Node>& graph, int i) {
 
 inline
 void checkBottleneck(std::vector<Node>& graph, int i) {
-    path = std::vector<bool>(graph.size(), false);    
+    path = std::vector<bool>(graph.size(), false);
     int up = count_up(graph, i), down = count_down(graph, i);
 
     if (up + down + 1 == (int) graph.size())
         std::cout << i + 1 << "\n";
 }
 
+// A node is considered a bottleneck if it can
+// reach all other nodes by travelling in one direction
 void bottlenecks(std::vector<Node>& graph) {
+    // Scan graph in the topological sort order
     std::vector<int> deg(graph.size());
     for (size_t i = 0; i < graph.size(); i++) deg[i] = (int) graph[i].requires.size();
 
     for (int k = 0; k < (int) graph.size(); k++) {
         for (int i = 0; i < (int) deg.size(); i++) {
             if (deg[i] != 0) continue;
-            
+
             Node& node = graph[i];
             for (const auto& id : node.required_by) {
                 deg[id]--;
             }
-            
+
             deg[i]--;
+
+            // Start and end node are bottlenecks by definition
             if (i == start || i == end) {
                 std::cout << i + 1 << "\n";
                 continue;
@@ -180,7 +185,7 @@ int main() {
 
     int n, t, d, id, stat;
     while (std::cin >> n) {
-        bool loop = false;
+        bool loop = false; // Nodes can't depend on themselves
         std::vector<Node> graph(n);
         for (int i = 0; i < n; i++) {
             std::cin >> t >> d;
@@ -189,11 +194,12 @@ int main() {
                 std::cin >> id;
                 id--;
 
-                if (id == i) {
+                if (id == i) { // If a node's dependency is itself, the graph is inadmissible
                     loop = true;
                     break;
                 }
 
+                // Bidirectional graph storage (the graph remains directed)
                 graph[i].depends_on(id);
                 graph[id].is_required(i);
             }
@@ -217,7 +223,6 @@ int main() {
                 std::cout << parallel_pipeline(graph, start) << "\n";
                 break;
             case 3:
-                // TODO
                 bottlenecks(graph);
                 break;
             default:
